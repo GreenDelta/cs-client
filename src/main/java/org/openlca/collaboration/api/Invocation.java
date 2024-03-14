@@ -1,6 +1,7 @@
 package org.openlca.collaboration.api;
 
 import java.io.InputStream;
+import java.net.CookieManager;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -10,7 +11,6 @@ import org.openlca.collaboration.model.WebRequestException;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.api.client.ClientResponse.Status;
 
 abstract class Invocation<E, T> {
 
@@ -23,7 +23,7 @@ abstract class Invocation<E, T> {
 	private final TypeToken<E> entityType;
 	private final Class<E> entityClass;
 	protected String baseUrl;
-	protected String sessionId;
+	protected CookieManager cookieManager;
 
 	protected Invocation(Type type, String path, TypeToken<E> entityType) {
 		this.type = type;
@@ -49,21 +49,29 @@ abstract class Invocation<E, T> {
 			url += part;
 		}
 		try {
-			var response = WebRequests.call(type, url, sessionId, data());
-			if (response.getStatus() == Status.NO_CONTENT.getStatusCode())
+			if (entityClass != null && InputStream.class.isAssignableFrom(entityClass)) {
+				var response = WebRequests.stream(type, url, cookieManager, data());
+				if (response.statusCode() == 204)
+					return process(null);
+				return process((E) response.body());
+			}
+			var isString = entityType == null
+					&& (entityClass == null || entityClass == String.class);
+			var response = isString
+					? WebRequests.string(type, url, cookieManager, data())
+					: WebRequests.json(type, url, cookieManager, data());
+			if (response.statusCode() == 204)
 				return process(null);
-			if (entityClass != null && InputStream.class.isAssignableFrom(entityClass))
-				return process((E) response.getEntityInputStream());
-			var string = response.getEntity(String.class);
+			var string = response.body();
 			if (string == null || string.isEmpty())
 				return process(null);
-			if (entityType == null && (entityClass == null || entityClass == String.class))
+			if (isString)
 				return process((E) string);
 			if (entityType == null)
 				return process(new Gson().fromJson(string, entityClass));
 			return process(new Gson().fromJson(string, entityType.getType()));
 		} catch (WebRequestException e) {
-			if (e.getErrorCode() == Status.NOT_FOUND.getStatusCode())
+			if (e.getErrorCode() == 404)
 				return null;
 			return handleError(e);
 		}
@@ -84,7 +92,7 @@ abstract class Invocation<E, T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected T process(E response) {
+	protected T process(E response) throws WebRequestException {
 		// subclasses may override
 		return (T) response;
 	}

@@ -2,16 +2,10 @@ package org.openlca.collaboration.model;
 
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.SocketException;
-
-import javax.net.ssl.SSLHandshakeException;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.ClientResponse.Status;
 
 public class WebRequestException extends Exception {
 
@@ -20,10 +14,10 @@ public class WebRequestException extends Exception {
 	private String host;
 	private int port;
 
-	public WebRequestException(String url, ClientResponse response) {
-		super(toMessage(response));
+	public WebRequestException(String url, int statusCode, String message) {
+		super(toMessage(message));
 		setHostAndPort(url);
-		this.errorCode = response.getStatus();
+		this.errorCode = statusCode;
 	}
 
 	private void setHostAndPort(String url) {
@@ -67,24 +61,23 @@ public class WebRequestException extends Exception {
 	public boolean isConnectException() {
 		if (getCause() instanceof ConnectException)
 			return true;
-		if (getCause() instanceof SocketException && getCause().getCause() instanceof ClientHandlerException)
-			return true;
-		if (!(getCause() instanceof ClientHandlerException))
-			return false;
-		if (getCause().getCause() instanceof ConnectException)
+//		if (getCause() instanceof SocketException && getCause().getCause() instanceof ClientHandlerException)
+//			return true;
+//		if (!(getCause() instanceof ClientHandlerException))
+//			return false;
+		if (getCause() != null && getCause().getCause() instanceof ConnectException)
 			return true;
 		return false;
 	}
 
 	public boolean isSslCertificateException() {
-		if ((getCause() instanceof ClientHandlerException))
-			if (getCause().getCause() instanceof SSLHandshakeException)
-				return true;
+//		if ((getCause() instanceof ClientHandlerException))
+//			if (getCause().getCause() instanceof SSLHandshakeException)
+//				return true;
 		return false;
 	}
 
-	private static String toMessage(ClientResponse response) {
-		var message = response.getEntity(String.class);
+	private static String toMessage(String message) {
 		if (!isValid(message))
 			return message;
 		var json = new Gson().fromJson(message, JsonElement.class);
@@ -109,7 +102,7 @@ public class WebRequestException extends Exception {
 	}
 
 	public boolean isUnauthorized() {
-		return errorCode == Status.UNAUTHORIZED.getStatusCode();
+		return errorCode == 401;
 	}
 
 	public String getHost() {

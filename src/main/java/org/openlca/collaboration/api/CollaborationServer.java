@@ -2,10 +2,9 @@ package org.openlca.collaboration.api;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.CookieManager;
 import java.util.List;
 import java.util.function.Supplier;
-
-import javax.ws.rs.core.Response.Status;
 
 import org.openlca.collaboration.api.AnnouncementInvocation.Announcement;
 import org.openlca.collaboration.model.Comment;
@@ -15,18 +14,15 @@ import org.openlca.collaboration.model.Entry;
 import org.openlca.collaboration.model.Repository;
 import org.openlca.collaboration.model.SearchResult;
 import org.openlca.collaboration.model.WebRequestException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CollaborationServer {
 
-	private static final Logger log = LoggerFactory.getLogger(CollaborationServer.class);
 	public static final String API_VERSION = "2.0.0";
 	public final String url;
 	private final Supplier<Credentials> credentialsSupplier;
 	private Credentials credentials;
 	private final String apiUrl;
-	private String sessionId;
+	private CookieManager cookieManager = new CookieManager();
 
 	public CollaborationServer(String url, Supplier<Credentials> credentialsSupplier) {
 		this.url = url;
@@ -59,7 +55,7 @@ public class CollaborationServer {
 	public List<Repository> listRepositories() throws WebRequestException {
 		return executeLoggedIn(new ListRepositoriesInvocation());
 	}
-	
+
 	public List<Comment> getComments(String repositoryId) throws WebRequestException {
 		return executeLoggedIn(new CommentsInvocation(repositoryId));
 	}
@@ -72,12 +68,13 @@ public class CollaborationServer {
 		return executeLoggedIn(new LibraryDownloadInvocation(library));
 	}
 
-	public boolean downloadJson(String repositoryId, String type, String refId, File toFile) throws WebRequestException {
+	public boolean downloadJson(String repositoryId, String type, String refId, File toFile)
+			throws WebRequestException {
 		var token = executeLoggedIn(new DownloadJsonPrepareInvocation(repositoryId, type, refId));
 		executeLoggedIn(new DownloadJsonInvocation(token, toFile));
 		return true;
 	}
-	
+
 	public List<Entry> browse(String repositoryId, String path) throws WebRequestException {
 		return executeLoggedIn(new BrowseInvocation(repositoryId, path));
 	}
@@ -86,22 +83,26 @@ public class CollaborationServer {
 		return executeLoggedIn(new SearchInvocation(query, type, page, pageSize));
 	}
 
+	private boolean isLoggedIn() {
+		for (var cookie : cookieManager.getCookieStore().getCookies())
+			if (cookie.getName().equals("JSESSIONID") && cookie.getValue() != null)
+				return true;
+		return false;
+	}
+
 	private <T> T executeLoggedIn(Invocation<?, T> invocation) throws WebRequestException {
 		invocation.baseUrl = apiUrl;
-		if (sessionId == null && !login())
+		if (!isLoggedIn() && !login())
 			return null;
-		invocation.sessionId = sessionId;
+		invocation.cookieManager = cookieManager;
 		try {
 			return invocation.execute();
 		} catch (WebRequestException e) {
-			if (e.getErrorCode() == Status.UNAUTHORIZED.getStatusCode()) {
-				if (!credentials.onUnauthenticated() || !login())
+			if (e.getErrorCode() == 403) {
+				if (!credentials.onUnauthorized() || !login())
 					return null;
-				invocation.sessionId = sessionId;
+				invocation.cookieManager = cookieManager;
 				return invocation.execute();
-			} else if (e.isConnectException()) {
-				log.error("Collaboration server request failed", e);
-				return null;
 			}
 			throw e;
 		}
@@ -111,25 +112,22 @@ public class CollaborationServer {
 		var invocation = new LoginInvocation();
 		invocation.baseUrl = apiUrl;
 		invocation.credentials = credentials();
+		invocation.cookieManager = cookieManager;
 		if (invocation.credentials == null)
 			return false;
 		try {
-			sessionId = invocation.execute();
+			invocation.execute();
 		} catch (WebRequestException e) {
-			if (e.isConnectException()) {
-				log.error("Collaboration server request failed", e);
-				return false;
-			}
-			if (e.getErrorCode() == Status.UNAUTHORIZED.getStatusCode()) {
+			if (e.getErrorCode() == 401) {
 				if (credentials.onUnauthenticated())
 					return login();
-			} else if (e.getErrorCode() == Status.FORBIDDEN.getStatusCode()) {
+			} else if (e.getErrorCode() == 403) {
 				if (credentials.onUnauthorized())
 					return login();
 			}
 			throw e;
 		}
-		return sessionId != null;
+		return isLoggedIn();
 	}
 
 	public void close() throws WebRequestException {
@@ -137,18 +135,17 @@ public class CollaborationServer {
 	}
 
 	private void logout() throws WebRequestException {
-		if (sessionId == null)
+		if (!isLoggedIn())
 			return;
 		try {
 			var invocation = new LogoutInvocation();
 			invocation.baseUrl = apiUrl;
-			invocation.sessionId = sessionId;
+			invocation.cookieManager = cookieManager;
 			invocation.execute();
 		} catch (WebRequestException e) {
-			if (e.getErrorCode() != Status.UNAUTHORIZED.getStatusCode()
-					&& e.getErrorCode() != Status.CONFLICT.getStatusCode())
+			if (e.getErrorCode() != 401 && e.getErrorCode() != 409)
 				throw e;
 		}
-		sessionId = null;
+		cookieManager = new CookieManager();
 	}
 }

@@ -5,18 +5,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Ssl {
 
-	private static final Logger log = LoggerFactory.getLogger(Ssl.class);
 	private static KeyStore keyStore;
 	private static CertificateFactory certificateFactory;
 	private static TrustManagerFactory trustManagerFactory;
@@ -32,7 +30,6 @@ public class Ssl {
 			certificateFactory = null;
 			keyStore = null;
 			trustManagerFactory = null;
-			log.error("Error initializing Ssl util", e);
 		}
 	}
 
@@ -53,29 +50,17 @@ public class Ssl {
 		}
 	}
 
-	public static void addCertificate(String name, InputStream stream) {
-		try {
-			var certificate = certificateFactory.generateCertificate(stream);
-			addCertificate(name, certificate);
-		} catch (Exception e) {
-			log.error("Error loading certificate", e);
-		}
+	public static void addCertificate(String name, InputStream stream) throws CertificateException, KeyStoreException {
+		var certificate = certificateFactory.generateCertificate(stream);
+		addCertificate(name, certificate);
 	}
 
-	public static void addCertificate(String name, Certificate certificate) {
-		try {
-			keyStore.setCertificateEntry(name, certificate);
-		} catch (Exception e) {
-			log.error("Error adding certificate to keystore", e);
-		}
+	public static void addCertificate(String name, Certificate certificate) throws KeyStoreException {
+		keyStore.setCertificateEntry(name, certificate);
 	}
 
-	public static void removeCertificate(String name) {
-		try {
-			keyStore.deleteEntry(name);
-		} catch (Exception e) {
-			log.error("Error removing certificate from keystore", e);
-		}
+	public static void removeCertificate(String name) throws KeyStoreException {
+		keyStore.deleteEntry(name);
 	}
 
 	private static KeyStore loadKeyStore() throws Exception {

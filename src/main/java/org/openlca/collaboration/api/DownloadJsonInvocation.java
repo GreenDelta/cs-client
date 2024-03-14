@@ -7,12 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 import org.openlca.collaboration.api.WebRequests.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openlca.collaboration.model.WebRequestException;
 
 class DownloadJsonInvocation extends Invocation<InputStream, Void> {
 
-	private static final Logger log = LoggerFactory.getLogger(DownloadJsonInvocation.class);
 	private final String token;
 	private final File toFile;
 
@@ -33,12 +31,11 @@ class DownloadJsonInvocation extends Invocation<InputStream, Void> {
 	}
 
 	@Override
-	protected Void process(InputStream response) {
+	protected Void process(InputStream response) throws WebRequestException {
 		try {
 			Files.copy(response, toFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			return null;
 		} catch (IOException e) {
-			log.error("Error downloading json", e);
 			return null;
 		}
 	}

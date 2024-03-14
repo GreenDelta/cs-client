@@ -3,8 +3,6 @@ package org.openlca.collaboration.api;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
-
 import org.openlca.collaboration.api.WebRequests.Type;
 import org.openlca.collaboration.model.Comment;
 import org.openlca.collaboration.model.WebRequestException;
@@ -60,7 +58,7 @@ public class CommentsInvocation extends Invocation<JsonObject, List<Comment>> {
 
 	@Override
 	protected List<Comment> handleError(WebRequestException e) throws WebRequestException {
-		if (e.isConnectException() || e.getErrorCode() == Status.SERVICE_UNAVAILABLE.getStatusCode())
+		if (e.isConnectException() || e.getErrorCode() == 503)
 			return new ArrayList<>();
 		throw e;
 	}

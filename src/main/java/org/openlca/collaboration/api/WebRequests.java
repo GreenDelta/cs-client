@@ -1,30 +1,26 @@
 package org.openlca.collaboration.api;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.CookieManager;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status.Family;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodyHandlers;
 
 import org.openlca.collaboration.Ssl;
+import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.WebRequestException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource.Builder;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
 class WebRequests {
-
-	private static final Logger log = LoggerFactory.getLogger(WebRequests.class);
 
 	static {
 	}
@@ -37,73 +33,109 @@ class WebRequests {
 		}
 	}
 
-	static ClientResponse call(Type type, String url, String sessionId) throws WebRequestException {
-		return call(type, url, sessionId, null);
+	static HttpResponse<String> string(Type type, String url, CookieManager cookieManager, Object data)
+			throws WebRequestException {
+		return call(type, url, cookieManager, data, "plain/text", BodyHandlers.ofString());
 	}
 
-	static ClientResponse call(Type type, String url, String sessionId, Object data) throws WebRequestException {
-		log.info(type.name() + " " + url);
-		var request = builder(url, sessionId, data);
+	static HttpResponse<String> json(Type type, String url, CookieManager cookieManager, Object data)
+			throws WebRequestException {
+		return call(type, url, cookieManager, data, "application/json", BodyHandlers.ofString());
+	}
+
+	static HttpResponse<InputStream> stream(Type type, String url, CookieManager cookieManager, Object data)
+			throws WebRequestException {
+		return call(type, url, cookieManager, data, "application/octet-stream", BodyHandlers.ofInputStream());
+	}
+
+	private static <T> HttpResponse<T> call(Type type, String url, CookieManager cookieManager, Object data,
+			String accept, BodyHandler<T> handler) throws WebRequestException {
 		try {
-			var response = call(type, request);
-			if (response.getStatus() >= 400 && response.getStatus() <= 599)
-				throw new WebRequestException(url, response);
-			if (response.getStatusInfo().getFamily() == Family.REDIRECTION)
-				return call(type, response.getLocation().toString(), sessionId, data);
+			HttpResponse<T> response = call(type, url, data, cookieManager, accept, handler);
+			if (response.statusCode() >= 400 && response.statusCode() <= 599)
+				throw new WebRequestException(url, response.statusCode(), response.body().toString());
+			if (response.statusCode() >= 300 && response.statusCode() <= 399)
+				return call(type, response.headers().firstValue("location").get(), cookieManager, data, accept,
+						handler);
 			return response;
 		} catch (Exception e) {
-			if (e instanceof WebRequestException)
-				throw e;
+			if (e instanceof WebRequestException w)
+				throw w;
 			throw new WebRequestException(url, e);
 		}
 	}
 
-	private static ClientResponse call(Type type, Builder builder) {
-		switch (type) {
-		case GET:
-			return builder.get(ClientResponse.class);
-		case POST:
-			return builder.post(ClientResponse.class);
-		case PUT:
-			return builder.put(ClientResponse.class);
-		case DELETE:
-			return builder.delete(ClientResponse.class);
-		default:
-			return null;
-		}
+	private static <T> HttpResponse<T> call(Type type, String url, Object data, CookieManager cookieManager,
+			String accept, BodyHandler<T> handler) throws URISyntaxException, IOException, InterruptedException {
+		var builder = HttpRequest.newBuilder()
+				.header("Accept", accept)
+				.header("Content-Type", getContentType(data))
+				.header("lca-cs-client-api-version", CollaborationServer.API_VERSION)
+				.uri(new URI(url));
+		return createClient(cookieManager).send(builder.method(type.name(), getBodyPublisher(data)).build(), handler);
 	}
 
-	private static Builder builder(String url, String sessionId, Object data) {
-		var resource = createClient().resource(url);
-		var builder = resource.accept(MediaType.APPLICATION_JSON_TYPE, MediaType.TEXT_PLAIN_TYPE,
-				MediaType.APPLICATION_OCTET_STREAM_TYPE);
-		builder.header("lca-cs-client-api-version", CollaborationServer.API_VERSION);
-		if (sessionId != null) {
-			builder.cookie(new Cookie("JSESSIONID", sessionId));
-		}
-		if (data instanceof InputStream) {
-			builder.entity(data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-		} else if (data != null) {
-			builder.entity(new Gson().toJson(data), MediaType.APPLICATION_JSON_TYPE);
-		}
-		return builder;
+	private static BodyPublisher getBodyPublisher(Object data) {
+		if (data instanceof InputStream stream)
+			return BodyPublishers.ofInputStream(() -> stream);
+		if (data != null)
+			return BodyPublishers.ofString(new Gson().toJson(data));
+		return BodyPublishers.noBody();
 	}
 
-	private static Client createClient() {
-		var config = new DefaultClientConfig();
-		var context = Ssl.createContext();
-		if (context != null) {
-			config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-					new HTTPSProperties(HttpsURLConnection.getDefaultHostnameVerifier(), context));
-		}
-		config.getProperties().put(ClientConfig.PROPERTY_FOLLOW_REDIRECTS, false);
-		var client = Client.create(config);
-		client.setChunkedEncodingSize(1024 * 100); // 100kb
-		return client;
+	private static String getContentType(Object data) {
+		if (data instanceof InputStream stream)
+			return "application/octet-stream";
+		if (data != null && !(data instanceof String))
+			return "application/json";
+		return "text/plain";
+	}
+
+	private static HttpClient createClient(CookieManager cookieManager) {
+		return HttpClient.newBuilder()
+				.cookieHandler(cookieManager)
+				.followRedirects(Redirect.NEVER)
+				.sslContext(Ssl.createContext()).build();
 	}
 
 	static enum Type {
 		GET, POST, PUT, DELETE;
+	}
+
+	public static void main(String[] args) throws WebRequestException {
+		var cs = new CollaborationServer("https://collab.greendelta.com", () -> new Credentials() {
+
+			@Override
+			public String username() {
+				return "greve";
+			}
+
+			@Override
+			public String token() {
+				return null;
+			}
+
+			@Override
+			public String promptToken() {
+				return null;
+			}
+
+			@Override
+			public String password() {
+				return "KaIsEr!4=5/";
+			}
+
+			@Override
+			public boolean onUnauthorized() {
+				return false;
+			}
+
+			@Override
+			public boolean onUnauthenticated() {
+				return false;
+			}
+		});
+		cs.listRepositories().forEach(repo -> System.out.println(repo.group() + "/" + repo.name()));
 	}
 
 }
