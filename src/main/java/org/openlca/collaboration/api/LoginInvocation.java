@@ -3,8 +3,8 @@ package org.openlca.collaboration.api;
 import java.util.HashMap;
 
 import org.openlca.collaboration.api.WebRequests.Type;
-import org.openlca.collaboration.api.WebRequests.WebRequestException;
 import org.openlca.collaboration.model.Credentials;
+import org.openlca.collaboration.model.WebRequestException;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;

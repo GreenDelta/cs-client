@@ -8,12 +8,13 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.Response.Status;
 
 import org.openlca.collaboration.api.AnnouncementInvocation.Announcement;
-import org.openlca.collaboration.api.WebRequests.WebRequestException;
 import org.openlca.collaboration.model.Comment;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.Dataset;
 import org.openlca.collaboration.model.Entry;
+import org.openlca.collaboration.model.Repository;
 import org.openlca.collaboration.model.SearchResult;
+import org.openlca.collaboration.model.WebRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +56,10 @@ public class CollaborationServer {
 		return invocation.execute();
 	}
 
+	public List<Repository> listRepositories() throws WebRequestException {
+		return executeLoggedIn(new ListRepositoriesInvocation());
+	}
+	
 	public List<Comment> getComments(String repositoryId) throws WebRequestException {
 		return executeLoggedIn(new CommentsInvocation(repositoryId));
 	}
@@ -77,8 +82,8 @@ public class CollaborationServer {
 		return executeLoggedIn(new BrowseInvocation(repositoryId, path));
 	}
 
-	public SearchResult<Dataset> search(String repositoryId, String query, String type, int page, int pageSize) throws WebRequestException {
-		return executeLoggedIn(new SearchInvocation(repositoryId, query, type, page, pageSize));
+	public SearchResult<Dataset> search(String query, String type, int page, int pageSize) throws WebRequestException {
+		return executeLoggedIn(new SearchInvocation(query, type, page, pageSize));
 	}
 
 	private <T> T executeLoggedIn(Invocation<?, T> invocation) throws WebRequestException {

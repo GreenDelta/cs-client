@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.openlca.collaboration.api.WebRequests.Type;
-import org.openlca.collaboration.api.WebRequests.WebRequestException;
+import org.openlca.collaboration.model.WebRequestException;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

@@ -1,31 +1,13 @@
 package org.openlca.collaboration.api;
 
-import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.TypeAdapter;
 
 class Json {
-
-	private static final Gson gson = new Gson();
-	private static final TypeAdapter<JsonElement> strictAdapter = gson.getAdapter(JsonElement.class);
-
-	static boolean isValid(String json) {
-		try {
-			strictAdapter.fromJson(json);
-		} catch (JsonSyntaxException | IOException e) {
-			return false;
-		}
-		return true;
-	}
-
-	static JsonElement parse(String json) {
-		return gson.fromJson(json, JsonElement.class);
-	}
 
 	static JsonObject toJsonObject(JsonElement element) {
 		if (element == null)
@@ -97,6 +79,15 @@ class Json {
 		if (primitive.isString())
 			return Boolean.parseBoolean(primitive.getAsString());
 		return defaultValue;
+	}
+
+	static Date getDate(JsonObject obj, String property) {
+		var time = Json.getLong(obj, property, 0l);
+		if (time == 0l)
+			return null;
+		var calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(time);
+		return calendar.getTime();
 	}
 
 	static JsonElement getValue(JsonElement element, String property) {

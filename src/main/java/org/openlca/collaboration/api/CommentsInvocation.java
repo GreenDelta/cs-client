@@ -1,15 +1,13 @@
 package org.openlca.collaboration.api;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
 import org.openlca.collaboration.api.WebRequests.Type;
-import org.openlca.collaboration.api.WebRequests.WebRequestException;
 import org.openlca.collaboration.model.Comment;
+import org.openlca.collaboration.model.WebRequestException;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -81,7 +79,7 @@ public class CommentsInvocation extends Invocation<JsonObject, List<Comment>> {
 					Json.getString(field, "refId"),
 					Json.getString(field, "modelType"),
 					Json.getString(field, "path"),
-					getDate(o, "date"),
+					Json.getDate(o, "date"),
 					Json.getBoolean(o, "released", false),
 					Json.getBoolean(o, "approved", false),
 					Json.getLong(o, "replyTo", 0l)//
@@ -90,12 +88,4 @@ public class CommentsInvocation extends Invocation<JsonObject, List<Comment>> {
 		return comments;
 	}
 
-	private Date getDate(JsonObject obj, String property) {
-		var time = Json.getLong(obj, property, 0l);
-		if (time == 0l)
-			return null;
-		var calendar = Calendar.getInstance();
-		calendar.setTimeInMillis(time);
-		return calendar.getTime();
-	}
 }

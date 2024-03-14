@@ -3,25 +3,25 @@ package org.openlca.collaboration.api;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.openlca.collaboration.api.WebRequests.Type;
 import org.openlca.collaboration.model.Entry;
-import org.openlca.collaboration.model.TypeOfEntry;
+import org.openlca.collaboration.model.SearchResult;
 
-import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * Invokes a webservice call to browse the given repository
  */
-public final class BrowseInvocation extends Invocation<JsonObject, List<Entry>> {
+public final class BrowseInvocation extends Invocation<SearchResult<Entry>, List<Entry>> {
 
 	private final String repositoryId;
 	private final String path;
 
 	BrowseInvocation(String repositoryId, String path) {
-		super(Type.GET, "public/browse", JsonObject.class);
+		super(Type.GET, "public/browse", new TypeToken<SearchResult<Entry>>() {
+		});
 		this.repositoryId = repositoryId;
 		this.path = path;
 	}
@@ -44,25 +44,8 @@ public final class BrowseInvocation extends Invocation<JsonObject, List<Entry>> 
 		return query;
 	}
 
-	protected List<Entry> process(JsonObject response) {
-		if (response == null || !response.has("data"))
-			return new ArrayList<>();
-		var array = Json.toJsonArray(response.get("data"));
-		if (array == null)
-			return new ArrayList<>();
-		var entries = new ArrayList<Entry>();
-		for (var e : array) {
-			var o = Json.toJsonObject(e);
-			entries.add(new Entry(
-					TypeOfEntry.valueOf(Json.getString(o, "typeOfEntry")),
-					Json.getString(o, "path"),
-					Json.getString(o, "name"),
-					Json.getString(o, "commitId"),
-					Json.getString(o, "flowType"),
-					Json.getString(o, "processType"),
-					Json.getInt(o, "count", 0)));
-		}
-		return entries;
+	protected List<Entry> process(SearchResult<Entry> response) {
+		return response.data();
 	}
 
 }
