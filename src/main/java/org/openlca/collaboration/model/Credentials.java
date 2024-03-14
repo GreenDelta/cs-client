@@ -1,4 +1,4 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.model;
 
 public interface Credentials {
 	

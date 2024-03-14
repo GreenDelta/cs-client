@@ -55,7 +55,7 @@ class Json {
 
 	static Integer getInt(JsonElement element, String property, Integer defaultValue) {
 		var value = getValue(element, property);
-		if (!value.isJsonPrimitive())
+		if (value == null || !value.isJsonPrimitive())
 			return defaultValue;
 		var primitive = value.getAsJsonPrimitive();
 		if (primitive.isNumber())
@@ -71,7 +71,7 @@ class Json {
 
 	static Long getLong(JsonElement element, String property, Long defaultValue) {
 		var value = getValue(element, property);
-		if (!value.isJsonPrimitive())
+		if (value == null || !value.isJsonPrimitive())
 			return defaultValue;
 		var primitive = value.getAsJsonPrimitive();
 		if (primitive.isNumber())
@@ -87,7 +87,7 @@ class Json {
 
 	static Boolean getBoolean(JsonElement element, String property, Boolean defaultValue) {
 		var value = getValue(element, property);
-		if (!value.isJsonPrimitive())
+		if (value == null || !value.isJsonPrimitive())
 			return defaultValue;
 		var primitive = value.getAsJsonPrimitive();
 		if (primitive.isBoolean())

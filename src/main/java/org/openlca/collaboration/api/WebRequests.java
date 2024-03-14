@@ -12,6 +12,7 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status.Family;
 
+import org.openlca.collaboration.Ssl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

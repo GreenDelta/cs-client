@@ -1,7 +1,6 @@
 package org.openlca.collaboration.api;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.function.Supplier;
@@ -9,9 +8,12 @@ import java.util.function.Supplier;
 import javax.ws.rs.core.Response.Status;
 
 import org.openlca.collaboration.api.AnnouncementInvocation.Announcement;
-import org.openlca.collaboration.api.CommentsInvocation.Comment;
-import org.openlca.collaboration.api.SearchInvocation.SearchResult;
 import org.openlca.collaboration.api.WebRequests.WebRequestException;
+import org.openlca.collaboration.model.Comment;
+import org.openlca.collaboration.model.Credentials;
+import org.openlca.collaboration.model.Dataset;
+import org.openlca.collaboration.model.Entry;
+import org.openlca.collaboration.model.SearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,17 +22,14 @@ public class CollaborationServer {
 	private static final Logger log = LoggerFactory.getLogger(CollaborationServer.class);
 	public static final String API_VERSION = "2.0.0";
 	public final String url;
-	public final String repositoryId;
 	private final Supplier<Credentials> credentialsSupplier;
 	private Credentials credentials;
 	private final String apiUrl;
 	private String sessionId;
 
-	public CollaborationServer(String url, String repositoryId, Supplier<Credentials> credentialsSupplier)
-			throws IOException {
+	public CollaborationServer(String url, Supplier<Credentials> credentialsSupplier) {
 		this.url = url;
 		this.apiUrl = url + "/ws";
-		this.repositoryId = repositoryId;
 		this.credentialsSupplier = credentialsSupplier;
 	}
 
@@ -56,11 +55,11 @@ public class CollaborationServer {
 		return invocation.execute();
 	}
 
-	public List<Comment> getComments() throws WebRequestException {
+	public List<Comment> getComments(String repositoryId) throws WebRequestException {
 		return executeLoggedIn(new CommentsInvocation(repositoryId));
 	}
 
-	public List<Comment> getComments(String type, String refId) throws WebRequestException {
+	public List<Comment> getComments(String repositoryId, String type, String refId) throws WebRequestException {
 		return executeLoggedIn(new CommentsInvocation(repositoryId, type, refId));
 	}
 
@@ -68,13 +67,17 @@ public class CollaborationServer {
 		return executeLoggedIn(new LibraryDownloadInvocation(library));
 	}
 
-	public boolean downloadJson(String type, String refId, File toFile) throws WebRequestException {
+	public boolean downloadJson(String repositoryId, String type, String refId, File toFile) throws WebRequestException {
 		var token = executeLoggedIn(new DownloadJsonPrepareInvocation(repositoryId, type, refId));
 		executeLoggedIn(new DownloadJsonInvocation(token, toFile));
 		return true;
 	}
+	
+	public List<Entry> browse(String repositoryId, String path) throws WebRequestException {
+		return executeLoggedIn(new BrowseInvocation(repositoryId, path));
+	}
 
-	public SearchResult search(String query, String type, int page, int pageSize) throws WebRequestException {
+	public SearchResult<Dataset> search(String repositoryId, String query, String type, int page, int pageSize) throws WebRequestException {
 		return executeLoggedIn(new SearchInvocation(repositoryId, query, type, page, pageSize));
 	}
 

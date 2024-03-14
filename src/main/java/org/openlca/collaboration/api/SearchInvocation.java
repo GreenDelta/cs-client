@@ -3,13 +3,14 @@ package org.openlca.collaboration.api;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openlca.collaboration.api.SearchInvocation.SearchResult;
 import org.openlca.collaboration.api.WebRequests.Type;
+import org.openlca.collaboration.model.Dataset;
+import org.openlca.collaboration.model.SearchResult;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-public class SearchInvocation extends Invocation<JsonObject, SearchResult> {
+public class SearchInvocation extends Invocation<JsonObject, SearchResult<Dataset>> {
 
 	private final String repositoryId;
 	private final String query;
@@ -27,6 +28,11 @@ public class SearchInvocation extends Invocation<JsonObject, SearchResult> {
 	}
 
 	@Override
+	protected void checkValidity() {
+		checkType(type);
+	}
+	
+	@Override
 	protected String query() {
 		var query = "?page=" + page
 				+ "&pageSize=" + pageSize
@@ -41,10 +47,10 @@ public class SearchInvocation extends Invocation<JsonObject, SearchResult> {
 	}
 
 	@Override
-	protected SearchResult process(JsonObject response) {
+	protected SearchResult<Dataset> process(JsonObject response) {
 		var data = parseDatasets(Json.toJsonArray(response.get("data")));
 		var resultInfo = Json.toJsonObject(response.get("resultInfo"));
-		return new SearchResult(data,
+		return new SearchResult<Dataset>(data,
 				Json.getInt(resultInfo, "currentPage", 0),
 				Json.getInt(resultInfo, "pageSize", 10),
 				Json.getInt(resultInfo, "totalCount", 0));
@@ -72,29 +78,5 @@ public class SearchInvocation extends Invocation<JsonObject, SearchResult> {
 			}
 		}
 		return datasets;
-	}
-
-	public record SearchResult(List<Dataset> data, ResultInfo resultInfo) {
-
-		public SearchResult() {
-			this(new ArrayList<>(), 0, 10, 0);
-		}
-
-		public SearchResult(List<Dataset> data, int currentPage, int pageSize, int totalCount) {
-			this(data, new ResultInfo(currentPage, pageSize, data.size(), totalCount));
-		}
-
-	}
-
-	public record Dataset(String type, String refId, String name, String category, String repositoryId,
-			String commitId) {
-	}
-
-	public record ResultInfo(int currentPage, int pageSize, int count, int totalCount) {
-
-		public int pageCount() {
-			return (int) Math.ceil(totalCount / (double) pageSize);
-		}
-
 	}
 }

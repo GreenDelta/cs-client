@@ -1,7 +1,9 @@
 package org.openlca.collaboration.api;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.openlca.collaboration.api.WebRequests.Type;
 import org.openlca.collaboration.api.WebRequests.WebRequestException;
@@ -11,6 +13,10 @@ import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.ClientResponse.Status;
 
 abstract class Invocation<E, T> {
+
+	private static final List<String> MODEL_TYPES = Arrays.asList("PROJECT", "IMPACT_METHOD", "IMPACT_CATEGORY",
+			"PRODUCT_SYSTEM", "PROCESS", "FLOW", "FLOW_PROPERTY", "UNIT_GROUP", "ACTOR", "SOURCE", "CATEGORY",
+			"LOCATION", "SOCIAL_INDICATOR", "CURRENCY", "PARAMETER", "DQ_SYSTEM", "RESULT", "EPD");
 
 	private final Type type;
 	private final String path;
@@ -87,7 +93,7 @@ abstract class Invocation<E, T> {
 		// subclasses may override
 		throw e;
 	}
-	
+
 	protected void checkNotEmpty(String value, String name) {
 		if (value == null || value.isEmpty())
 			throw new IllegalArgumentException("No " + name + " set");
@@ -102,4 +108,12 @@ abstract class Invocation<E, T> {
 		if (value == null)
 			throw new IllegalArgumentException("No " + name + " set");
 	}
+
+	protected void checkType(String type) {
+		if (type == null)
+			return;
+		if (!MODEL_TYPES.contains(type))
+			throw new IllegalArgumentException("Unsupported model type " + type);
+	}
+
 }

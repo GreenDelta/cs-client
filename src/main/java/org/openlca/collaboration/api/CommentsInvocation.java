@@ -7,9 +7,9 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.openlca.collaboration.api.CommentsInvocation.Comment;
 import org.openlca.collaboration.api.WebRequests.Type;
 import org.openlca.collaboration.api.WebRequests.WebRequestException;
+import org.openlca.collaboration.model.Comment;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -38,6 +38,7 @@ public class CommentsInvocation extends Invocation<JsonObject, List<Comment>> {
 	@Override
 	protected void checkValidity() {
 		checkNotEmpty(repositoryId, "repository id");
+		checkType(type);
 	}
 
 	@Override
@@ -96,10 +97,5 @@ public class CommentsInvocation extends Invocation<JsonObject, List<Comment>> {
 		var calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(time);
 		return calendar.getTime();
-	}
-
-	public record Comment(long id, String user, String text, String type, String refId, String path, Date date,
-			boolean released, boolean approved, long replyTo) {
-
 	}
 }

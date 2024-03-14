@@ -20,6 +20,7 @@ class DownloadJsonPrepareInvocation extends Invocation<String, String> {
 		checkNotEmpty(repositoryId, "repository id");
 		checkNotEmpty(type, "type");
 		checkNotEmpty(refId, "refId");
+		checkType(type);
 	}
 
 	@Override

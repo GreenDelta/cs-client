@@ -1,4 +1,4 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -22,7 +22,7 @@ public class Ssl {
 	private static TrustManagerFactory trustManagerFactory;
 	private static Path keyStorePath = Paths.get(System.getProperty("java.home"), "lib", "security", "cacerts");
 	private static String keyStorePassword = "changeit";
-	
+
 	static {
 		try {
 			certificateFactory = CertificateFactory.getInstance("X.509");
@@ -39,8 +39,8 @@ public class Ssl {
 	public static KeyStore getKeyStore() {
 		return keyStore;
 	}
-	
-	static SSLContext createContext() {
+
+	public static SSLContext createContext() {
 		if (trustManagerFactory == null)
 			return null;
 		try {
