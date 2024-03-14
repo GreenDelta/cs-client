@@ -19,5 +19,10 @@ public class ListRepositoriesInvocation extends Invocation<SearchResult<Reposito
 	protected List<Repository> process(SearchResult<Repository> response) {
 		return response.data();
 	}
+	
+	@Override
+	protected String query() {
+		return "?page=0";
+	}
 
 }
