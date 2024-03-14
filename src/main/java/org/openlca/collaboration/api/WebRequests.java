@@ -15,7 +15,6 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 
 import org.openlca.collaboration.Ssl;
-import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.WebRequestException;
 
 import com.google.gson.Gson;
@@ -100,42 +99,6 @@ class WebRequests {
 
 	static enum Type {
 		GET, POST, PUT, DELETE;
-	}
-
-	public static void main(String[] args) throws WebRequestException {
-		var cs = new CollaborationServer("https://collab.greendelta.com", () -> new Credentials() {
-
-			@Override
-			public String username() {
-				return "greve";
-			}
-
-			@Override
-			public String token() {
-				return null;
-			}
-
-			@Override
-			public String promptToken() {
-				return null;
-			}
-
-			@Override
-			public String password() {
-				return "KaIsEr!4=5/";
-			}
-
-			@Override
-			public boolean onUnauthorized() {
-				return false;
-			}
-
-			@Override
-			public boolean onUnauthenticated() {
-				return false;
-			}
-		});
-		cs.listRepositories().forEach(repo -> System.out.println(repo.group() + "/" + repo.name()));
 	}
 
 }
