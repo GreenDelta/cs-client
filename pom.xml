@@ -12,7 +12,7 @@
 	</properties>
 
 	<groupId>org.openlca</groupId>
-	<artifactId>olca-cs</artifactId>
+	<artifactId>cs-client</artifactId>
 	<version>2.1.0</version>
 
 	<name>${project.groupId}:${project.artifactId}</name>
