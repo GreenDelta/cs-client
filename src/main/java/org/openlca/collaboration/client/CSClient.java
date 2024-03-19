@@ -40,6 +40,7 @@ public class CSClient {
 	public static boolean isCollaborationServer(String url) throws WebRequestException {
 		var invocation = new ServerCheckInvocation();
 		invocation.baseUrl = url + "/ws";
+		invocation.cookieManager = new CookieManager();
 		var result = invocation.execute();
 		if (result != null)
 			return result;
@@ -49,6 +50,7 @@ public class CSClient {
 	public Announcement getAnnouncement() throws WebRequestException {
 		var invocation = new AnnouncementInvocation();
 		invocation.baseUrl = apiUrl;
+		invocation.cookieManager = cookieManager;
 		return invocation.execute();
 	}
 
