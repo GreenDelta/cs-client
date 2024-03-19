@@ -1,8 +1,8 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
 import java.io.InputStream;
 
-import org.openlca.collaboration.api.WebRequests.Type;
+import org.openlca.collaboration.client.WebRequests.Type;
 
 class LibraryDownloadInvocation extends Invocation<InputStream, InputStream> {
 

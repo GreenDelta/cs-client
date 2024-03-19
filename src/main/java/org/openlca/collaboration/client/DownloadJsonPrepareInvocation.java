@@ -1,6 +1,6 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
-import org.openlca.collaboration.api.WebRequests.Type;
+import org.openlca.collaboration.client.WebRequests.Type;
 
 class DownloadJsonPrepareInvocation extends Invocation<String, String> {
 

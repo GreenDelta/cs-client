@@ -1,4 +1,4 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
 import java.util.Calendar;
 import java.util.Date;

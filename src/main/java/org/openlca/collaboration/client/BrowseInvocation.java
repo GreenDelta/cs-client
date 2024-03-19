@@ -1,11 +1,11 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.openlca.collaboration.api.WebRequests.Type;
+import org.openlca.collaboration.client.WebRequests.Type;
 import org.openlca.collaboration.model.Entry;
 import org.openlca.collaboration.model.SearchResult;
 

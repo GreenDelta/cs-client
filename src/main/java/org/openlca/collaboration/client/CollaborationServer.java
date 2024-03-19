@@ -1,4 +1,4 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
 import java.io.File;
 import java.io.InputStream;
@@ -6,7 +6,7 @@ import java.net.CookieManager;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.openlca.collaboration.api.AnnouncementInvocation.Announcement;
+import org.openlca.collaboration.client.AnnouncementInvocation.Announcement;
 import org.openlca.collaboration.model.Comment;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.Dataset;
@@ -37,9 +37,9 @@ public class CollaborationServer {
 		return credentials;
 	}
 
-	public boolean isCollaborationServer() throws WebRequestException {
+	public static boolean isCollaborationServer(String url) throws WebRequestException {
 		var invocation = new ServerCheckInvocation();
-		invocation.baseUrl = apiUrl;
+		invocation.baseUrl = url + "/ws";
 		var result = invocation.execute();
 		if (result != null)
 			return result;

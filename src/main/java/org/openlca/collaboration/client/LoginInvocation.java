@@ -1,10 +1,10 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
 import java.net.CookieManager;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
 
-import org.openlca.collaboration.api.WebRequests.Type;
+import org.openlca.collaboration.client.WebRequests.Type;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.WebRequestException;
 

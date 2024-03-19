@@ -1,4 +1,4 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
 import java.io.InputStream;
 import java.net.CookieManager;
@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.openlca.collaboration.api.WebRequests.Type;
+import org.openlca.collaboration.client.WebRequests.Type;
 import org.openlca.collaboration.model.WebRequestException;
 
 import com.google.gson.Gson;

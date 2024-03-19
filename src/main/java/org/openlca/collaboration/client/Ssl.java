@@ -1,4 +1,4 @@
-package org.openlca.collaboration;
+package org.openlca.collaboration.client;
 
 import java.io.InputStream;
 import java.nio.file.Files;

@@ -1,7 +1,7 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
-import org.openlca.collaboration.api.AnnouncementInvocation.Announcement;
-import org.openlca.collaboration.api.WebRequests.Type;
+import org.openlca.collaboration.client.AnnouncementInvocation.Announcement;
+import org.openlca.collaboration.client.WebRequests.Type;
 
 /**
  * Invokes a webservice call to check for server announcements

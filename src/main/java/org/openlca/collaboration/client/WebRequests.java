@@ -1,4 +1,4 @@
-package org.openlca.collaboration.api;
+package org.openlca.collaboration.client;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +14,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 
-import org.openlca.collaboration.Ssl;
 import org.openlca.collaboration.model.WebRequestException;
 
 import com.google.gson.Gson;
