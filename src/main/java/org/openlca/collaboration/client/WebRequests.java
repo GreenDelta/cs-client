@@ -68,7 +68,7 @@ class WebRequests {
 		var builder = HttpRequest.newBuilder()
 				.header("Accept", accept)
 				.header("Content-Type", getContentType(data))
-				.header("lca-cs-client-api-version", CollaborationServer.API_VERSION)
+				.header("lca-cs-client-api-version", CSClient.API_VERSION)
 				.uri(new URI(url));
 		return createClient(cookieManager).send(builder.method(type.name(), getBodyPublisher(data)).build(), handler);
 	}

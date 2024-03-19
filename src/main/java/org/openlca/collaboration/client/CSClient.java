@@ -15,7 +15,7 @@ import org.openlca.collaboration.model.Repository;
 import org.openlca.collaboration.model.SearchResult;
 import org.openlca.collaboration.model.WebRequestException;
 
-public class CollaborationServer {
+public class CSClient {
 
 	public static final String API_VERSION = "2.0.0";
 	public final String url;
@@ -24,7 +24,7 @@ public class CollaborationServer {
 	private final String apiUrl;
 	private CookieManager cookieManager = new CookieManager();
 
-	public CollaborationServer(String url, Supplier<Credentials> credentialsSupplier) {
+	public CSClient(String url, Supplier<Credentials> credentialsSupplier) {
 		this.url = url;
 		this.apiUrl = url + "/ws";
 		this.credentialsSupplier = credentialsSupplier;
