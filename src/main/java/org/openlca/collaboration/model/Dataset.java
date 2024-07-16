@@ -1,5 +1,13 @@
 package org.openlca.collaboration.model;
 
-public record Dataset(String type, String refId, String name, String category, String repositoryId,
-		String commitId) {
+import java.util.List;
+
+public record Dataset(String type, String refId, List<Version> versions) {
+	
+	public record Version(String category, String name, List<Repo> repos) {
+	}
+	
+	public record Repo(String path, String commitId) {
+	}
+	
 }
