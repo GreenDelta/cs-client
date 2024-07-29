@@ -6,7 +6,6 @@ import java.net.CookieManager;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.openlca.collaboration.client.AnnouncementInvocation.Announcement;
 import org.openlca.collaboration.model.Comment;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.Dataset;
@@ -54,20 +53,24 @@ public class CSClient {
 		return invocation.execute();
 	}
 
-	public void createRepository(String group, String name) throws WebRequestException {
-		executeLoggedIn(new CreateRepositoryInvocation(group, name));
+	public void createRepository(String repositoryId) throws WebRequestException {
+		executeLoggedIn(new CreateRepositoryInvocation(repositoryId));
 	}
-	
-	public List<Repository> listRepositories() throws WebRequestException {
-		return executeLoggedIn(new ListRepositoriesInvocation());
-	}
-	
+
 	public List<String> listReadableGroups() throws WebRequestException {
 		return executeLoggedIn(ListGroupsInvocation.readable());
 	}
 
 	public List<String> listWritableGroups() throws WebRequestException {
 		return executeLoggedIn(ListGroupsInvocation.writable());
+	}
+
+	public List<Repository> listRepositories() throws WebRequestException {
+		return executeLoggedIn(new ListRepositoriesInvocation());
+	}
+
+	public void deleteRepository(String repositoryId) throws WebRequestException {
+		executeLoggedIn(new DeleteRepositoryInvocation(repositoryId));
 	}
 
 	public List<Comment> getComments(String repositoryId) throws WebRequestException {

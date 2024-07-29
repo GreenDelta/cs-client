@@ -33,12 +33,7 @@ class WebRequests {
 
 	static HttpResponse<String> string(Type type, String url, CookieManager cookieManager, Object data)
 			throws WebRequestException {
-		return call(type, url, cookieManager, data, "plain/text", BodyHandlers.ofString());
-	}
-
-	static HttpResponse<String> json(Type type, String url, CookieManager cookieManager, Object data)
-			throws WebRequestException {
-		return call(type, url, cookieManager, data, "application/json", BodyHandlers.ofString());
+		return call(type, url, cookieManager, data, "application/json;plain/text", BodyHandlers.ofString());
 	}
 
 	static HttpResponse<InputStream> stream(Type type, String url, CookieManager cookieManager, Object data)

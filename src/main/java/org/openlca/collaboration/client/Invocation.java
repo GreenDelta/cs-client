@@ -31,7 +31,7 @@ abstract class Invocation<E, T> {
 		this.entityClass = null;
 		this.entityType = null;
 	}
-	
+
 	protected Invocation(Type type, String path, TypeToken<E> entityType) {
 		this.type = type;
 		this.path = path;
@@ -62,17 +62,17 @@ abstract class Invocation<E, T> {
 					return process(null);
 				return process((E) response.body());
 			}
-			var isString = entityType == null
-					&& (entityClass == null || entityClass == String.class);
-			var response = isString
-					? WebRequests.string(type, url, cookieManager, data())
-					: WebRequests.json(type, url, cookieManager, data());
+			if (entityType == null && entityClass == null) {
+				WebRequests.string(type, url, cookieManager, data());
+				return null;
+			}
+			var response = WebRequests.string(type, url, cookieManager, data());
 			if (response.statusCode() == 204)
 				return process(null);
 			var string = response.body();
 			if (string == null || string.isEmpty())
 				return process(null);
-			if (isString)
+			if (entityType == null && entityClass == String.class)
 				return process((E) string);
 			if (entityType == null)
 				return process(new Gson().fromJson(string, entityClass));
