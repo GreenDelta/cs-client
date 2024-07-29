@@ -54,8 +54,20 @@ public class CSClient {
 		return invocation.execute();
 	}
 
+	public void createRepository(String group, String name) throws WebRequestException {
+		executeLoggedIn(new CreateRepositoryInvocation(group, name));
+	}
+	
 	public List<Repository> listRepositories() throws WebRequestException {
 		return executeLoggedIn(new ListRepositoriesInvocation());
+	}
+	
+	public List<String> listReadableGroups() throws WebRequestException {
+		return executeLoggedIn(ListGroupsInvocation.readable());
+	}
+
+	public List<String> listWritableGroups() throws WebRequestException {
+		return executeLoggedIn(ListGroupsInvocation.writable());
 	}
 
 	public List<Comment> getComments(String repositoryId) throws WebRequestException {
@@ -70,11 +82,10 @@ public class CSClient {
 		return executeLoggedIn(new LibraryDownloadInvocation(library));
 	}
 
-	public boolean downloadJson(String repositoryId, String type, String refId, File toFile)
+	public void downloadJson(String repositoryId, String type, String refId, File toFile)
 			throws WebRequestException {
 		var token = executeLoggedIn(new DownloadJsonPrepareInvocation(repositoryId, type, refId));
 		executeLoggedIn(new DownloadJsonInvocation(token, toFile));
-		return true;
 	}
 
 	public List<Entry> browse(String repositoryId, String path) throws WebRequestException {

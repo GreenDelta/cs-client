@@ -11,10 +11,7 @@ import org.openlca.collaboration.model.SearchResult;
 
 import com.google.gson.reflect.TypeToken;
 
-/**
- * Invokes a webservice call to browse the given repository
- */
-public final class BrowseInvocation extends Invocation<SearchResult<Entry>, List<Entry>> {
+final class BrowseInvocation extends Invocation<SearchResult<Entry>, List<Entry>> {
 
 	private final String repositoryId;
 	private final String path;

@@ -8,16 +8,13 @@ import org.openlca.collaboration.client.WebRequests.Type;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.WebRequestException;
 
-/**
- * Invokes a web service call to login
- */
 class LoginInvocation {
 
 	private static final String PATH = "public/login";
 	String baseUrl;
 	Credentials credentials;
 	CookieManager cookieManager;
-	
+
 	String execute() throws WebRequestException {
 		var response = _execute(credentials.token());
 		if (response.statusCode() != 200)

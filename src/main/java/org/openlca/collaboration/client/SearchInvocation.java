@@ -6,7 +6,7 @@ import org.openlca.collaboration.model.SearchResult;
 
 import com.google.gson.reflect.TypeToken;
 
-public class SearchInvocation extends Invocation<SearchResult<Dataset>, SearchResult<Dataset>> {
+class SearchInvocation extends Invocation<SearchResult<Dataset>, SearchResult<Dataset>> {
 
 	private final String query;
 	private final String type;

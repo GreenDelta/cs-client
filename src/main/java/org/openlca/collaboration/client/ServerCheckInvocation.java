@@ -4,9 +4,9 @@ import org.openlca.collaboration.client.WebRequests.Type;
 
 import com.google.gson.JsonObject;
 
-public class ServerCheckInvocation extends Invocation<JsonObject, Boolean> {
+class ServerCheckInvocation extends Invocation<JsonObject, Boolean> {
 
-	protected ServerCheckInvocation() {
+	ServerCheckInvocation() {
 		super(Type.GET, "public", JsonObject.class);
 	}
 

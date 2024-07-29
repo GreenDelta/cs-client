@@ -8,7 +8,7 @@ import org.openlca.collaboration.model.SearchResult;
 
 import com.google.gson.reflect.TypeToken;
 
-public class ListRepositoriesInvocation extends Invocation<SearchResult<Repository>, List<Repository>> {
+class ListRepositoriesInvocation extends Invocation<SearchResult<Repository>, List<Repository>> {
 
 	ListRepositoriesInvocation() {
 		super(Type.GET, "repository", new TypeToken<SearchResult<Repository>>() {

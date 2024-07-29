@@ -10,11 +10,7 @@ import org.openlca.collaboration.model.WebRequestException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-/**
- * Invokes a web service call to retrieve comments of a dataset from a
- * repository
- */
-public class CommentsInvocation extends Invocation<JsonObject, List<Comment>> {
+class CommentsInvocation extends Invocation<JsonObject, List<Comment>> {
 
 	private final String repositoryId;
 	private final String type;

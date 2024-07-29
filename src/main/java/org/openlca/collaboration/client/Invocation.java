@@ -25,6 +25,13 @@ abstract class Invocation<E, T> {
 	protected String baseUrl;
 	protected CookieManager cookieManager;
 
+	protected Invocation(Type type, String path) {
+		this.type = type;
+		this.path = path;
+		this.entityClass = null;
+		this.entityType = null;
+	}
+	
 	protected Invocation(Type type, String path, TypeToken<E> entityType) {
 		this.type = type;
 		this.path = path;
