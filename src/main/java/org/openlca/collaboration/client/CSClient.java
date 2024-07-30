@@ -135,15 +135,17 @@ public class CSClient {
 			invocation.execute();
 		} catch (WebRequestException e) {
 			if (e.getErrorCode() == 401) {
-				if (credentials.onUnauthenticated())
-					return login();
-			} else if (e.getErrorCode() == 403) {
-				if (credentials.onUnauthorized())
-					return login();
+				if (!credentials.onUnauthenticated())
+					return false;
+				cookieManager = new CookieManager();
+				return login();
 			}
 			throw e;
 		}
-		return isLoggedIn();
+		return
+
+		isLoggedIn();
+
 	}
 
 	public void close() throws WebRequestException {
