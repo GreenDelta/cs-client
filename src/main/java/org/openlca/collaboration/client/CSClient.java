@@ -10,6 +10,7 @@ import org.openlca.collaboration.model.Comment;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.Dataset;
 import org.openlca.collaboration.model.Entry;
+import org.openlca.collaboration.model.LibraryInfo;
 import org.openlca.collaboration.model.Repository;
 import org.openlca.collaboration.model.SearchResult;
 import org.openlca.collaboration.model.WebRequestException;
@@ -68,7 +69,10 @@ public class CSClient {
 	public List<Repository> listRepositories() throws WebRequestException {
 		return executeLoggedIn(new ListRepositoriesInvocation());
 	}
-
+	
+	public List<LibraryInfo> listLibraries() throws WebRequestException {
+		return executeLoggedIn(new ListLibrariesInvocation());
+	}
 	public void deleteRepository(String repositoryId) throws WebRequestException {
 		executeLoggedIn(new DeleteRepositoryInvocation(repositoryId));
 	}
