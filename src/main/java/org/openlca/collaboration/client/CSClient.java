@@ -69,10 +69,11 @@ public class CSClient {
 	public List<Repository> listRepositories() throws WebRequestException {
 		return executeLoggedIn(new ListRepositoriesInvocation());
 	}
-	
+
 	public List<LibraryInfo> listLibraries() throws WebRequestException {
 		return executeLoggedIn(new ListLibrariesInvocation());
 	}
+
 	public void deleteRepository(String repositoryId) throws WebRequestException {
 		executeLoggedIn(new DeleteRepositoryInvocation(repositoryId));
 	}
@@ -118,13 +119,26 @@ public class CSClient {
 		try {
 			return invocation.execute();
 		} catch (WebRequestException e) {
-			if (e.getErrorCode() == 403) {
-				if (!credentials.onUnauthorized() || !login())
-					return null;
+			if (e.getErrorCode() != 403)
+				throw e;
+			// session might be invalidated, try again with same credentials
+			cookieManager = new CookieManager();
+			if (!login())
+				return null;
+			try {
 				invocation.cookieManager = cookieManager;
 				return invocation.execute();
+			} catch (WebRequestException e2) {
+				if (e2.getErrorCode() != 403)
+					throw e;
+				// notify about unauthorized response
+				// and check if should try again
+				if (!credentials.onUnauthorized())
+					return null;
+				credentials = null;
+				cookieManager = new CookieManager();
+				return executeLoggedIn(invocation);
 			}
-			throw e;
 		}
 	}
 
@@ -139,17 +153,17 @@ public class CSClient {
 			invocation.execute();
 		} catch (WebRequestException e) {
 			if (e.getErrorCode() == 401) {
+				cookieManager = new CookieManager();
+				// notify about unauthenticated response
+				// and check if should try again
 				if (!credentials.onUnauthenticated())
 					return false;
-				cookieManager = new CookieManager();
+				credentials = null;
 				return login();
 			}
 			throw e;
 		}
-		return
-
-		isLoggedIn();
-
+		return isLoggedIn();
 	}
 
 	public void close() throws WebRequestException {
