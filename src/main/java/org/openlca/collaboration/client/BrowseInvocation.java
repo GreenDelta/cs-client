@@ -1,6 +1,5 @@
 package org.openlca.collaboration.client;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -32,12 +31,8 @@ final class BrowseInvocation extends Invocation<SearchResult<Entry>, List<Entry>
 	protected String query() {
 		var query = "/" + repositoryId;
 		if (path != null && !path.isEmpty()) {
-			try {
-				query += "?categoryPath=" + URLEncoder.encode(path, StandardCharsets.UTF_8.toString());
-			} catch (UnsupportedEncodingException e) {
-				throw new IllegalArgumentException("path can not be url encoded: " + e.getMessage() + ": " + path);
-			}
-		}
+            query += "?categoryPath=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
+        }
 		return query;
 	}
 
