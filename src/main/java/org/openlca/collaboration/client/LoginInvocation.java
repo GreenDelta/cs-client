@@ -4,6 +4,7 @@ import java.net.CookieManager;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
 
+import org.openlca.collaboration.client.WebRequests.DataType;
 import org.openlca.collaboration.client.WebRequests.Type;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.WebRequestException;
@@ -15,18 +16,17 @@ class LoginInvocation {
 	Credentials credentials;
 	CookieManager cookieManager;
 
-	String execute() throws WebRequestException {
+	void execute() throws WebRequestException {
 		var response = _execute(credentials.token());
 		if (response.statusCode() != 200)
-			return null;
+			return;
 		var result = response.body();
 		if ("tokenRequired".equals(result)) {
 			var token = credentials.promptToken();
 			if (token == null)
-				return null; // TODO throw exception?
+				return; // TODO throw exception?
 			response = _execute(token);
 		}
-		return response.headers().firstValue("JSESSIONID").orElse(null);
 	}
 
 	private HttpResponse<String> _execute(String token) throws WebRequestException {
@@ -47,7 +47,7 @@ class LoginInvocation {
 		if (token != null && !token.isEmpty()) {
 			data.put("token", token);
 		}
-		return WebRequests.string(Type.POST, url, cookieManager, data);
+		return WebRequests.string(Type.POST, url, cookieManager, data, DataType.JSON);
 	}
 
 }

@@ -4,11 +4,11 @@ import java.io.InputStream;
 
 import org.openlca.collaboration.client.WebRequests.Type;
 
-class LibraryDownloadInvocation extends Invocation<InputStream, InputStream> {
+class DownloadLibraryInvocation extends Invocation<InputStream, InputStream> {
 
 	private final String library;
 
-	LibraryDownloadInvocation(String library) {
+	DownloadLibraryInvocation(String library) {
 		super(Type.GET, "libraries", InputStream.class);
 		this.library = library;
 	}

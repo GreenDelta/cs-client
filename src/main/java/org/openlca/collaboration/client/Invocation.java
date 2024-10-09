@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.openlca.collaboration.client.WebRequests.DataType;
 import org.openlca.collaboration.client.WebRequests.Type;
 import org.openlca.collaboration.model.WebRequestException;
 
@@ -47,7 +48,7 @@ abstract class Invocation<E, T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final T execute() throws WebRequestException {
+	final T execute() throws WebRequestException {
 		checkNotEmpty(baseUrl, "base url");
 		checkValidity();
 		var url = baseUrl + "/" + path;
@@ -57,16 +58,14 @@ abstract class Invocation<E, T> {
 		}
 		try {
 			if (entityClass != null && InputStream.class.isAssignableFrom(entityClass)) {
-				var response = WebRequests.stream(type, url, cookieManager, data());
+				var response = WebRequests.stream(type, url, cookieManager, data(), dataType());
 				if (response.statusCode() == 204)
 					return process(null);
 				return process((E) response.body());
 			}
-			if (entityType == null && entityClass == null) {
-				WebRequests.string(type, url, cookieManager, data());
+			var response = WebRequests.string(type, url, cookieManager, data(), dataType());
+			if (entityType == null && entityClass == null)
 				return null;
-			}
-			var response = WebRequests.string(type, url, cookieManager, data());
 			if (response.statusCode() == 204)
 				return process(null);
 			var string = response.body();
@@ -94,6 +93,11 @@ abstract class Invocation<E, T> {
 	}
 
 	protected Object data() {
+		// subclasses may override
+		return null;
+	}
+	
+	protected DataType dataType() {
 		// subclasses may override
 		return null;
 	}

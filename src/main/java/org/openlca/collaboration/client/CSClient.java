@@ -1,6 +1,5 @@
 package org.openlca.collaboration.client;
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.CookieManager;
 import java.util.List;
@@ -87,13 +86,17 @@ public class CSClient {
 	}
 
 	public InputStream downloadLibrary(String library) throws WebRequestException {
-		return executeLoggedIn(new LibraryDownloadInvocation(library));
+		return executeLoggedIn(new DownloadLibraryInvocation(library));
 	}
 
-	public void downloadJson(String repositoryId, String type, String refId, File toFile)
+	public InputStream downloadJson(String repositoryId, String type, String refId)
 			throws WebRequestException {
 		var token = executeLoggedIn(new DownloadJsonPrepareInvocation(repositoryId, type, refId));
-		executeLoggedIn(new DownloadJsonInvocation(token, toFile));
+		return executeLoggedIn(new DownloadJsonInvocation(token));
+	}
+
+	public void uploadLibrary(InputStream library) throws WebRequestException {
+		executeLoggedIn(new UploadLibraryInvocation(library));
 	}
 
 	public List<Entry> browse(String repositoryId, String path) throws WebRequestException {
