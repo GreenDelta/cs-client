@@ -9,6 +9,7 @@ import org.openlca.collaboration.model.Comment;
 import org.openlca.collaboration.model.Credentials;
 import org.openlca.collaboration.model.Dataset;
 import org.openlca.collaboration.model.Entry;
+import org.openlca.collaboration.model.LibraryAccess;
 import org.openlca.collaboration.model.LibraryInfo;
 import org.openlca.collaboration.model.Repository;
 import org.openlca.collaboration.model.SearchResult;
@@ -96,7 +97,11 @@ public class CSClient {
 	}
 
 	public void uploadLibrary(InputStream library) throws WebRequestException {
-		executeLoggedIn(new UploadLibraryInvocation(library));
+		uploadLibrary(library, LibraryAccess.MEMBER);
+	}
+
+	public void uploadLibrary(InputStream library, LibraryAccess access) throws WebRequestException {
+		executeLoggedIn(new UploadLibraryInvocation(library, access));
 	}
 
 	public List<Entry> browse(String repositoryId, String path) throws WebRequestException {
