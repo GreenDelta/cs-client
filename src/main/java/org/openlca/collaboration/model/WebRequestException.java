@@ -26,13 +26,15 @@ public class WebRequestException extends Exception {
 		if (url == null || url.isEmpty())
 			return;
 		if (url.startsWith("https://")) {
-			url = url.substring(8);
+			host = url.substring(8);
 			port = 443;
 		} else if (url.startsWith("http://")) {
-			url = url.substring(7);
+			host = url.substring(7);
 			port = 80;
 		}
-		host = url.substring(0, url.indexOf("/"));
+		if (host.contains("/")) {
+			host = host.substring(0, host.indexOf("/"));
+		}
 		if (host.contains(":")) {
 			port = Integer.parseInt(host.substring(host.indexOf(":") + 1));
 			host = host.substring(0, host.indexOf(":"));
@@ -63,16 +65,19 @@ public class WebRequestException extends Exception {
 	}
 
 	public boolean isConnectException() {
-		if (getCause() instanceof ConnectException)
-			return true;
-		if (getCause() != null && getCause().getCause() instanceof ConnectException)
-			return true;
-		return false;
+		return is(getCause(), ConnectException.class);
 	}
 
 	public boolean isSslCertificateException() {
-		if (getCause() instanceof SSLHandshakeException
-				|| getCause().getCause() instanceof SSLHandshakeException)
+		return is(getCause(), SSLHandshakeException.class);
+	}
+
+	private boolean is(Throwable e, Class<? extends Throwable> c) {
+		if (c.isInstance(e))
+			return true;
+		if (e != null && c.isInstance(e.getCause()))
+			return true;
+		if (e != null && e.getCause() != null && c.isInstance(e.getCause().getCause()))
 			return true;
 		return false;
 	}
