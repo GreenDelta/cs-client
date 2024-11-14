@@ -3,6 +3,8 @@ package org.openlca.collaboration.model;
 import java.io.IOException;
 import java.net.ConnectException;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
@@ -21,6 +23,8 @@ public class WebRequestException extends Exception {
 	}
 
 	private void setHostAndPort(String url) {
+		if (url == null || url.isEmpty())
+			return;
 		if (url.startsWith("https://")) {
 			url = url.substring(8);
 			port = 443;
@@ -61,19 +65,15 @@ public class WebRequestException extends Exception {
 	public boolean isConnectException() {
 		if (getCause() instanceof ConnectException)
 			return true;
-//		if (getCause() instanceof SocketException && getCause().getCause() instanceof ClientHandlerException)
-//			return true;
-//		if (!(getCause() instanceof ClientHandlerException))
-//			return false;
 		if (getCause() != null && getCause().getCause() instanceof ConnectException)
 			return true;
 		return false;
 	}
 
 	public boolean isSslCertificateException() {
-//		if ((getCause() instanceof ClientHandlerException))
-//			if (getCause().getCause() instanceof SSLHandshakeException)
-//				return true;
+		if (getCause() instanceof SSLHandshakeException
+				|| getCause().getCause() instanceof SSLHandshakeException)
+			return true;
 		return false;
 	}
 
