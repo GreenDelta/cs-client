@@ -127,7 +127,7 @@ public class CSClient {
 		try {
 			return invocation.execute();
 		} catch (WebRequestException e) {
-			if (e.getErrorCode() != 403)
+			if (e.getErrorCode() != 403 && e.getErrorCode() != 401)
 				throw e;
 			// session might be invalidated, try again with same credentials
 			cookieManager = new CookieManager();
