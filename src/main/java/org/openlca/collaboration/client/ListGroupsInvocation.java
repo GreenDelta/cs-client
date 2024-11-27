@@ -1,6 +1,7 @@
 package org.openlca.collaboration.client;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.openlca.collaboration.client.WebRequests.Type;
@@ -30,6 +31,9 @@ class ListGroupsInvocation extends Invocation<SearchResult<Group>, List<String>>
 	protected List<String> process(SearchResult<Group> response) {
 		return response.data().stream()
 				.map(Group::name)
+				.filter(Objects::isNull)
+				.distinct()
+				.sorted((n1, n2) -> n1.toLowerCase().compareTo(n2.toLowerCase()))
 				.collect(Collectors.toList());
 	}
 
