@@ -1,7 +1,7 @@
 package org.openlca.collaboration.client;
 
 import java.io.InputStream;
-import java.net.CookieManager;
+import java.net.http.HttpClient;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +24,7 @@ abstract class Invocation<E, T> {
 	private final TypeToken<E> entityType;
 	private final Class<E> entityClass;
 	protected String baseUrl;
-	protected CookieManager cookieManager;
+	protected HttpClient client;
 
 	protected Invocation(Type type, String path) {
 		this.type = type;
@@ -58,12 +58,12 @@ abstract class Invocation<E, T> {
 		}
 		try {
 			if (entityClass != null && InputStream.class.isAssignableFrom(entityClass)) {
-				var response = WebRequests.stream(type, url, cookieManager, data(), dataType());
+				var response = WebRequests.stream(client, type, url, data(), dataType());
 				if (response.statusCode() == 204)
 					return process(null);
 				return process((E) response.body());
 			}
-			var response = WebRequests.string(type, url, cookieManager, data(), dataType());
+			var response = WebRequests.string(client, type, url, data(), dataType());
 			if (entityType == null && entityClass == null)
 				return null;
 			if (response.statusCode() == 204)

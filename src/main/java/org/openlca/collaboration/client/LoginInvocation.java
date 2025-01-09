@@ -1,6 +1,6 @@
 package org.openlca.collaboration.client;
 
-import java.net.CookieManager;
+import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
 
@@ -14,7 +14,7 @@ class LoginInvocation {
 	private static final String PATH = "public/login";
 	String baseUrl;
 	Credentials credentials;
-	CookieManager cookieManager;
+	HttpClient client;
 
 	void execute() throws WebRequestException {
 		var response = _execute(credentials.token());
@@ -47,7 +47,7 @@ class LoginInvocation {
 		if (token != null && !token.isEmpty()) {
 			data.put("token", token);
 		}
-		return WebRequests.string(Type.POST, url, cookieManager, data, DataType.JSON);
+		return WebRequests.string(client, Type.POST, url, data, DataType.JSON);
 	}
 
 }

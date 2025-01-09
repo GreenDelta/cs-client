@@ -6,11 +6,9 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.CookieManager;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
@@ -39,25 +37,25 @@ class WebRequests {
 		}
 	}
 
-	static HttpResponse<String> string(Type type, String url, CookieManager cookieManager, Object data,
-			DataType dataType) throws WebRequestException {
-		return call(type, url, cookieManager, data, dataType, "application/json;plain/text", BodyHandlers.ofString());
+	static HttpResponse<String> string(HttpClient client, Type type, String url, Object data, DataType dataType)
+			throws WebRequestException {
+		return call(client, type, url, data, dataType, "application/json;plain/text", BodyHandlers.ofString());
 	}
 
-	static HttpResponse<InputStream> stream(Type type, String url, CookieManager cookieManager, Object data,
-			DataType dataType) throws WebRequestException {
-		return call(type, url, cookieManager, data, dataType, "application/octet-stream", BodyHandlers.ofInputStream());
+	static HttpResponse<InputStream> stream(HttpClient client, Type type, String url, Object data, DataType dataType)
+			throws WebRequestException {
+		return call(client, type, url, data, dataType, "application/octet-stream", BodyHandlers.ofInputStream());
 	}
 
-	private static <T> HttpResponse<T> call(Type type, String url, CookieManager cookieManager, Object data,
-			DataType dataType, String accept, BodyHandler<T> handler) throws WebRequestException {
+	private static <T> HttpResponse<T> call(HttpClient client, Type type, String url, Object data, DataType dataType,
+			String accept, BodyHandler<T> handler) throws WebRequestException {
 		try {
-			HttpResponse<T> response = call(type, url, data, dataType, cookieManager, accept, handler);
+			HttpResponse<T> response = _call(client, type, url, data, dataType, accept, handler);
 			if (response.statusCode() >= 400 && response.statusCode() <= 599)
 				throw new WebRequestException(url, response.statusCode(), response.body().toString());
 			if (response.statusCode() >= 300 && response.statusCode() <= 399)
-				return call(type, response.headers().firstValue("location").get(), cookieManager, data, dataType,
-						accept, handler);
+				return call(client, type, response.headers().firstValue("location").get(), data, dataType, accept,
+						handler);
 			return response;
 		} catch (Exception e) {
 			if (e instanceof WebRequestException w)
@@ -67,8 +65,8 @@ class WebRequests {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> HttpResponse<T> call(Type type, String url, Object data, DataType dataType,
-			CookieManager cookieManager, String accept, BodyHandler<T> handler)
+	private static <T> HttpResponse<T> _call(HttpClient client, Type type, String url, Object data, DataType dataType,
+			String accept, BodyHandler<T> handler)
 			throws URISyntaxException, IOException, InterruptedException {
 		var builder = HttpRequest.newBuilder()
 				.header("Accept", accept)
@@ -87,7 +85,7 @@ class WebRequests {
 					.header("Content-Type", contentType)
 					.method(type.name(), getBodyPublisher(data, dataType));
 		}
-		return createClient(cookieManager).send(builder.build(), handler);
+		return client.send(builder.build(), handler);
 	}
 
 	private static BodyPublisher getBodyPublisher(Object data, DataType dataType) {
@@ -100,13 +98,6 @@ class WebRequests {
 		if (data != null)
 			throw new IllegalArgumentException("Data does not fit type " + dataType.contentType);
 		return BodyPublishers.noBody();
-	}
-
-	private static HttpClient createClient(CookieManager cookieManager) {
-		return HttpClient.newBuilder()
-				.cookieHandler(cookieManager)
-				.followRedirects(Redirect.NEVER)
-				.sslContext(Ssl.createContext()).build();
 	}
 
 	private static class FormData {

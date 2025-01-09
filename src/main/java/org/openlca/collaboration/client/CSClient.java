@@ -2,6 +2,8 @@ package org.openlca.collaboration.client;
 
 import java.io.InputStream;
 import java.net.CookieManager;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -22,12 +24,13 @@ public class CSClient {
 	private final Supplier<Credentials> credentialsSupplier;
 	private Credentials credentials;
 	private final String apiUrl;
-	private CookieManager cookieManager = new CookieManager();
+	private HttpClient client;
 
 	public CSClient(String url, Supplier<Credentials> credentialsSupplier) {
 		this.url = url;
 		this.apiUrl = url + "/ws";
 		this.credentialsSupplier = credentialsSupplier;
+		this.client = createClient();
 	}
 
 	private Credentials credentials() {
@@ -37,10 +40,17 @@ public class CSClient {
 		return credentials;
 	}
 
+	private static HttpClient createClient() {
+		return HttpClient.newBuilder()
+				.cookieHandler(new CookieManager())
+				.followRedirects(Redirect.NEVER)
+				.sslContext(Ssl.createContext()).build();
+	}
+
 	public static boolean isCollaborationServer(String url) throws WebRequestException {
 		var invocation = new ServerCheckInvocation();
 		invocation.baseUrl = url + "/ws";
-		invocation.cookieManager = new CookieManager();
+		invocation.client = createClient();
 		var result = invocation.execute();
 		if (result != null)
 			return result;
@@ -50,7 +60,7 @@ public class CSClient {
 	public Announcement getAnnouncement() throws WebRequestException {
 		var invocation = new AnnouncementInvocation();
 		invocation.baseUrl = apiUrl;
-		invocation.cookieManager = cookieManager;
+		invocation.client = client;
 		return invocation.execute();
 	}
 
@@ -113,6 +123,7 @@ public class CSClient {
 	}
 
 	private boolean isLoggedIn() {
+		var cookieManager = (CookieManager) client.cookieHandler().get();
 		for (var cookie : cookieManager.getCookieStore().getCookies())
 			if (cookie.getName().equals("JSESSIONID") && cookie.getValue() != null)
 				return true;
@@ -123,18 +134,18 @@ public class CSClient {
 		invocation.baseUrl = apiUrl;
 		if (!isLoggedIn() && !login())
 			return null;
-		invocation.cookieManager = cookieManager;
+		invocation.client = client;
 		try {
 			return invocation.execute();
 		} catch (WebRequestException e) {
 			if (e.getErrorCode() != 403 && e.getErrorCode() != 401)
 				throw e;
 			// session might be invalidated, try again with same credentials
-			cookieManager = new CookieManager();
+			client = createClient();
 			if (!login())
 				return null;
 			try {
-				invocation.cookieManager = cookieManager;
+				invocation.client = client;
 				return invocation.execute();
 			} catch (WebRequestException e2) {
 				if (e2.getErrorCode() != 403)
@@ -144,7 +155,7 @@ public class CSClient {
 				if (!credentials.onUnauthorized())
 					return null;
 				credentials = null;
-				cookieManager = new CookieManager();
+				client = createClient();
 				return executeLoggedIn(invocation);
 			}
 		}
@@ -154,14 +165,14 @@ public class CSClient {
 		var invocation = new LoginInvocation();
 		invocation.baseUrl = apiUrl;
 		invocation.credentials = credentials();
-		invocation.cookieManager = cookieManager;
+		invocation.client = client;
 		if (invocation.credentials == null)
 			return false;
 		try {
 			invocation.execute();
 		} catch (WebRequestException e) {
 			if (e.getErrorCode() == 401) {
-				cookieManager = new CookieManager();
+				client = createClient();
 				// notify about unauthenticated response
 				// and check if should try again
 				if (!credentials.onUnauthenticated())
@@ -184,12 +195,12 @@ public class CSClient {
 		try {
 			var invocation = new LogoutInvocation();
 			invocation.baseUrl = apiUrl;
-			invocation.cookieManager = cookieManager;
+			invocation.client = client;
 			invocation.execute();
 		} catch (WebRequestException e) {
 			if (e.getErrorCode() != 401 && e.getErrorCode() != 409)
 				throw e;
 		}
-		cookieManager = new CookieManager();
+		client = createClient();
 	}
 }
