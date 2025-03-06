@@ -141,23 +141,13 @@ public class CSClient {
 			if (e.getErrorCode() != 403 && e.getErrorCode() != 401)
 				throw e;
 			// session might be invalidated, try again with same credentials
-			client = createClient();
-			if (!login())
-				return null;
-			try {
-				invocation.client = client;
-				return invocation.execute();
-			} catch (WebRequestException e2) {
-				if (e2.getErrorCode() != 403)
-					throw e;
-				// notify about unauthorized response
-				// and check if should try again
+			if (e.getErrorCode() == 403) {
 				if (!credentials.onUnauthorized())
 					return null;
+				logout();
 				credentials = null;
-				client = createClient();
-				return executeLoggedIn(invocation);
 			}
+			return executeLoggedIn(invocation);
 		}
 	}
 
@@ -171,6 +161,10 @@ public class CSClient {
 		try {
 			invocation.execute();
 		} catch (WebRequestException e) {
+			if (e.getErrorCode() == 409) {
+				logout();
+				return login();
+			}
 			if (e.getErrorCode() == 401) {
 				client = createClient();
 				// notify about unauthenticated response
